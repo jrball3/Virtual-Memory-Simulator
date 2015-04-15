@@ -2,6 +2,7 @@
 #include <vector>
 #include <utility>
 #include <math.h>
+#include <ctime>
 
 #define FREE_FRAME -1
 
@@ -28,10 +29,11 @@ class VirtualMemorySimulator{
 		// and everything else for the page replacement algorithms
 		// frame.pid will be -1 for unallocated frames
 		struct frame{
+			bool valid;
 			int pid; // The process the frame is allocated to
-			int age; // LRU: Used to monitor access times ; FIFO: Used to store allocation time
-			frame(int p)
-			: pid(p){}
+			clock_t age; // LRU: Used to monitor access times ; FIFO: Used to store allocation time
+			frame(bool v, int p, clock_t a)
+			: valid(v), pid(p), age(a){}
 		};
 
 		// The vector of frame structs representing physical memory
@@ -44,7 +46,7 @@ class VirtualMemorySimulator{
 		std::map<int,struct process> virtual_memory;
 
 	public:
-		VirtualMemorySimulator(int num_frames, int m);
+		VirtualMemorySimulator(int num_frames, int replacement_policy);
 		void start(int pid, int size);
 		void terminate(int pid);
 		int reference(int pid, int page_number);

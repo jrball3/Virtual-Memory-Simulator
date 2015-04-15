@@ -1,14 +1,14 @@
 #include "VirtualMemorySimulator.h"
 using namespace std;
 
-VirtualMemorySimulator::VirtualMemorySimulator(int num_frames, int m)
-: mode(m) {
+VirtualMemorySimulator::VirtualMemorySimulator(int num_frames, int replacement_policy)
+: mode(replacement_policy) {
 	//initialize physical memory to -1, representing vacant
 	//physical_memory size represents
 	for(int i = 0; i < num_frames; i++){
 		//physical_memory.push_back(pair<int, int>(-1,-1));
 
-		struct frame f(FREE_FRAME, FREE_FRAME);
+		struct frame f(false, 0, 0);
 		physical_memory.push_back(f);
 	}
 }
@@ -39,9 +39,10 @@ int VirtualMemorySimulator::reference(int pid, int page_number){
 	// If the page number is not resident, check for available memory
 	if(!resident){
 		for(int page = 0; page < physical_memory.size(); page++){
-			if(physical_memory[page].pid == FREE_FRAME){
+			if(!physical_memory[page].valid){
 				// Found a free frame of memory, allocate it
 				p->pages.push_back(page);
+				physical_memory[page].valid = true;
 				physical_memory[page].pid = pid;
 
 				if(mode == MODE_LRU){
@@ -53,13 +54,14 @@ int VirtualMemorySimulator::reference(int pid, int page_number){
 				}
 				else if(mode == MODE_FIFO){
 					// Set age to the current time
+					physical_memory[page].age = clock();
 				}
 
 				return PAGE_SUCCESS;
 			}
 		}
 
-		// If we get to this point, there are no frames available
+		// If we get to this point, there are no frames available in physical memory
 		// Implement replacement policies here --------------------------------
 
 
@@ -101,8 +103,9 @@ void VirtualMemorySimulator::terminate(int process_id){
 	for(auto f : physical_memory){
 		if(f.pid == process_id){
 			// Deallocate the frame
-			f.pid = FREE_FRAME;
-			f.age = FREE_FRAME;
+			f.valid = false;
+			f.pid = 0;
+			f.age = 0;
 		}
 	}
 
