@@ -1,5 +1,5 @@
 #include <fstream>
-#include <stringstream>
+#include <sstream>
 #include <iostream>
 #include <string>
 #include "VirtualMemorySim.h"
@@ -17,7 +17,7 @@ int main(int argc, char* argv[]){
 		//do so using a class, which contains parameters representing frame size
 		//as well as a data structure to store processes
 		//processes should be indexed by process number
-		VirtualMemorySim VMS(num_frames);
+		VirtualMemorySimulator VMS(num_frames);
 		ifstream infile(filename);
 		if(infile.is_open()){
 			string line, word;
@@ -46,16 +46,13 @@ int main(int argc, char* argv[]){
 					//call reference function
 					int result = VMS.reference(process_number, page_number);
 					if(result == PAGE_FAULT){
-						cout << "Encountered a page fault when attempting to add a reference
-								from process id " << process_number << " to page number " << 
-								page_number << endl;
+						cout << "Encountered a page fault when attempting to add a reference from process id " << process_number << " to page number " << page_number << endl;
 					}
 					else if(result == PAGE_SUCCESS){
 						// Reference addition successful
 					}
 					else if(result == PAGE_RESIDENT){
-						cout << "Page number " << page_number << " is already resident to
-								process id " << process_number << endl;
+						cout << "Page number " << page_number << " is already resident to process id " << process_number << endl;
 					}
 				}	
 			}

@@ -3,21 +3,16 @@
 #include <utility>
 #include <math.h>
 #include <ctime>
+#include <map>
 
 #define FREE_FRAME -1
 
-#define PAGE_FAULT = 0;
-#define PAGE_SUCCESS = 1;
-#define PAGE_RESIDENT = 2;
-
-#define MODE_RANDOM = 10;
-#define MODE_LRU = 11;
-#define MODE_FIFO = 12;
-
+#define PAGE_FAULT 0
+#define PAGE_SUCCESS 1
+#define PAGE_RESIDENT 2
 
 class VirtualMemorySimulator{
 	private:
-		int mode;
 		
 		struct process{
 		//	int pid;
@@ -46,9 +41,9 @@ class VirtualMemorySimulator{
 		std::map<int,struct process> virtual_memory;
 
 	public:
-		VirtualMemorySimulator(int num_frames, int replacement_policy);
+		VirtualMemorySimulator(int num_frames);
 		void start(int pid, int size);
 		void terminate(int pid);
 		int reference(int pid, int page_number);
-		void incOtherAges(int page_number);
+		void incAllOtherAges(int page_number);
 };
