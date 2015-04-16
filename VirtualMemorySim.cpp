@@ -8,7 +8,7 @@ VirtualMemorySimulator::VirtualMemorySimulator(int num_frames)
 	for(int i = 0; i < num_frames; i++){
 		//physical_memory.push_back(pair<int, int>(-1,-1));
 
-		struct frame f(false, 0, 0);
+		struct frame f(false, -1, 0);
 		physical_memory.push_back(f);
 	}
 }
@@ -41,10 +41,8 @@ int VirtualMemorySimulator::reference(int pid, int page_number){
 	// Check if the page is not resident
 	bool resident = false;
 	struct process *p = &virtual_memory[pid];
-	for(auto it : p->pages){
-		if(it == page_number){
-			resident = true;
-		}
+	if(p->pages[page_number] != -1){
+		resident = true;
 	}
 
 	// If the page number is not resident, check for available memory
@@ -52,7 +50,7 @@ int VirtualMemorySimulator::reference(int pid, int page_number){
 		for(int page = 0; page < physical_memory.size(); page++){
 			if(!physical_memory[page].valid){
 				// Found a free frame of memory, allocate it
-				p->pages.push_back(page);
+				p->pages[page_number] = page;
 				physical_memory[page].valid = true;
 				physical_memory[page].pid = pid;
 
@@ -84,17 +82,24 @@ int VirtualMemorySimulator::reference(int pid, int page_number){
 
 void VirtualMemorySimulator::terminate(int process_id){
 	// Free all frames the process references
-	for(auto f : physical_memory){
-		if(f.pid == process_id){
-			// Deallocate the frame
-			f.valid = false;
-			f.pid = 0;
-			f.age = 0;
-		}
-	}
+	//for(auto f : physical_memory){
+	//	if(f.pid == process_id){
+	//		// Deallocate the frame
+	//		f.valid = false;
+	//		f.pid = -1;
+	//		f.age = 0;
+	//	}
+	//}
 
 	// Remove the process from the map
 	auto p = virtual_memory.find(process_id);
-	if(p != virtual_memory.end())
-		virtual_memory.erase(p);
+	for(int i = 0; i < p.num_pages; i++){
+		if(p->pages[i] != -1){
+			physical_memory[i].valid = false;
+			physical_memory[i].pid = -1;
+			physical_memory[i].age = 0;
+		}
+	}
+	virtual_memory.erase(process_id);
+}
 }
