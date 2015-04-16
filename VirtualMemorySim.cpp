@@ -1,16 +1,18 @@
 #include "VirtualMemorySim.h"
 using namespace std;
 
-VirtualMemorySimulator::VirtualMemorySimulator(int num_frames)
+VirtualMemorySimulator::VirtualMemorySimulator(int num_frames, int mode)
 {
 	//initialize physical memory to -1, representing vacant
 	//physical_memory size represents
 	for(int i = 0; i < num_frames; i++){
 		//physical_memory.push_back(pair<int, int>(-1,-1));
 
-		struct frame f(false, -1, 0);
+		struct frame f(false, FREE_FRAME, 0);
 		physical_memory.push_back(f);
 	}
+	replacement_policy  = mode;
+	fault_count = 0;
 }
 
 void VirtualMemorySimulator::start(int process_id, int size){
@@ -37,6 +39,24 @@ void VirtualMemorySimulator::incAllOtherAges(int page_number){
 		}
 	}	
 }
+void VirtualMemorySimulator::fifoReplacement(int pid, int page_number){
+	if(fifo.size() != physical_memory.size()){
+		cout << "ERROR: Incoherence between queue and physical memory" << endl;
+	}
+	pair<int, struct frame> element = fifo.front();
+	fifo.pop();
+	int location = element.first;
+	struct frame target = element.second;
+	for(int i = 0; i < virtual_memory[target.pid].num_pages; i++){
+		if(virtual_memory[target.pid].pages[i] == location){
+		       virtual_memory[target.pid].pages[i] = -1;
+		}
+ 	}
+	physical_memory[location].pid = pid;
+       	physical_memory[location].valid = false;
+	
+	virtual_memory[pid].pages[page_number] = location;	
+}
 int VirtualMemorySimulator::reference(int pid, int page_number){
 	// Check if the page is not resident
 	bool resident = false;
@@ -47,11 +67,13 @@ int VirtualMemorySimulator::reference(int pid, int page_number){
 
 	// If the page number is not resident, check for available memory
 	if(!resident){
+		fault_count++;
+
 		for(int page = 0; page < physical_memory.size(); page++){
 			if(!physical_memory[page].valid){
 				// Found a free frame of memory, allocate it
 				p->pages[page_number] = page;
-				physical_memory[page].valid = true;
+				physical_memory[page].valid = false;
 				physical_memory[page].pid = pid;
 
 				physical_memory[page].age = 0;
@@ -59,15 +81,23 @@ int VirtualMemorySimulator::reference(int pid, int page_number){
 				// Do nothing, age is not used
 				// Set age to the current time
 				physical_memory[page].age = clock();
-
+				//place filled frame onto FIFO queue
+				fifo.push(pair<int, struct frame>(page, physical_memory[page]));
 				return PAGE_SUCCESS;
 			}
 		}
 
 		// If we get to this point, there are no frames available in physical memory
 		// Implement replacement policies here --------------------------------
-
-
+		if(replacement_policy = MODE_RANDOM){
+			//call random replacement
+		}
+		else if(replacement_policy = MODE_LRU){
+			//call LRU replacement
+		}
+		else{
+			fifoReplacement(pid, page_number);
+		}
 
 		// --------------------------------------------------------------------
 
@@ -92,14 +122,14 @@ void VirtualMemorySimulator::terminate(int process_id){
 	//}
 
 	// Remove the process from the map
-	auto p = virtual_memory.find(process_id);
+	struct process p = virtual_memory[process_id];
 	for(int i = 0; i < p.num_pages; i++){
-		if(p->pages[i] != -1){
+		if(p.pages[i] != -1){
 			physical_memory[i].valid = false;
-			physical_memory[i].pid = -1;
+			physical_memory[i].pid = FREE_FRAME;
 			physical_memory[i].age = 0;
 		}
 	}
 	virtual_memory.erase(process_id);
 }
-}
+

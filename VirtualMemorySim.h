@@ -4,6 +4,8 @@
 #include <math.h>
 #include <ctime>
 #include <map>
+#include <queue>
+#include <iostream>
 
 #define FREE_FRAME -1
 
@@ -11,8 +13,14 @@
 #define PAGE_SUCCESS 1
 #define PAGE_RESIDENT 2
 
+#define MODE_RANDOM 1
+#define MODE_LRU 2
+#define MODE_QUEUE 3
+
 class VirtualMemorySimulator{
 	private:
+		int replacement_policy;		
+		int fault_count;
 		
 		struct process{
 		//	int pid;
@@ -39,11 +47,12 @@ class VirtualMemorySimulator{
 
 		// pair format is <pid, process>
 		std::map<int,struct process> virtual_memory;
-
+		std::queue<std::pair<int, struct frame>> fifo;
 	public:
-		VirtualMemorySimulator(int num_frames);
+		VirtualMemorySimulator(int num_framesi, int mode);
 		void start(int pid, int size);
 		void terminate(int pid);
 		int reference(int pid, int page_number);
 		void incAllOtherAges(int page_number);
+		void fifoReplacement(int pid, int page_number);
 };

@@ -17,7 +17,7 @@ int main(int argc, char* argv[]){
 		//do so using a class, which contains parameters representing frame size
 		//as well as a data structure to store processes
 		//processes should be indexed by process number
-		VirtualMemorySimulator VMS(num_frames);
+		VirtualMemorySimulator VMS(num_frames, MODE_QUEUE);
 		ifstream infile(filename);
 		if(infile.is_open()){
 			string line, word;
