@@ -57,5 +57,6 @@ class VirtualMemorySimulator{
 		void fifoReplacement(int pid, int page_number);
 		void randomReplacement(int pid, int page_number);
 		void LRUReplacement(int pid, int page_number);
+		void replaceFrameHolder(int frame, int pid);
 
 };

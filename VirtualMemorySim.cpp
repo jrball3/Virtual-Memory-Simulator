@@ -59,21 +59,31 @@ void VirtualMemorySimulator::fifoReplacement(int pid, int page_number){
 	virtual_memory[pid].pages[page_number] = location;	
 }
 
+// This function removes the indicated frame from its original holder 
+// and gives ownership to the indicated process
+void VirtualMemorySimulator::replaceFrameHolder(int frame, int pid, int page_number){
+
+	// Remove the old reference to the frame from the previous holder
+	for(int i = 0; i < virtual_memory[physical_memory[frame].pid].pages.size(); i++){
+		if(virtual_memory[physical_memory[frame].pid].pages[i] == frame){
+			virtual_memory[physical_memory[frame].pid].pages[i] = -1;
+			break;
+		}
+	}
+
+	// Assign the frame's PID to the new PID
+	physical_memory[frame].pid = pid;
+
+	// Update the location for the new page
+	virtual_memory[pid].pages[page_number] = frame;
+}
+
 void VirtualMemorySimulator::randomReplacement(int pid, int page_number){
 	// Generate a random index within the size of physical memory
 	int randIndex = rand() % physical_memory.size();
 
-	// Remove the old reference to the randIndex from the previous pageholder
-	for(int i = 0; i < virtual_memory[physical_memory[randIndex].pid].pages.size(); i++){
-		if(virtual_memory[physical_memory[randIndex].pid].pages[i] == randIndex)
-			virtual_memory[physical_memory[randIndex].pid].pages[i] = -1;
-	}
-
-	// Assign the frame's PID to the new PID
-	physical_memory[randIndex].pid = pid;
-
-	// Update the location for the new page
-	virtual_memory[pid].pages[page_number] = randIndex;
+	// Switch the frame holder to the new one
+	replaceFrameHolder(randIndex, pid, page_number);
 }
 
 void VirtualMemorySimulator::LRUReplacement(int pid, int page_number){
