@@ -88,6 +88,18 @@ void VirtualMemorySimulator::randomReplacement(int pid, int page_number){
 
 void VirtualMemorySimulator::LRUReplacement(int pid, int page_number){
 
+	// Find the frame with the oldest age
+	int frame = 0;
+	int age = 0;
+	for(int i = 0 ; i < physical_memory.size; i ++){
+		if(physical_memory[i].age > age){
+			age = physical_memory[i].age;
+			frame = i;
+		}
+	}
+
+	// Switch the frame holder to the new one
+	replaceFrameHolder(frame, pid, page_number);
 }
 
 int VirtualMemorySimulator::reference(int pid, int page_number){
