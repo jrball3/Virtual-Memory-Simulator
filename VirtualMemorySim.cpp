@@ -13,6 +13,7 @@ VirtualMemorySimulator::VirtualMemorySimulator(int num_frames, int mode)
 	}
 	replacement_policy  = mode;
 	fault_count = 0;
+	srand(time(0));
 }
 
 void VirtualMemorySimulator::start(int process_id, int size){
@@ -53,11 +54,36 @@ void VirtualMemorySimulator::fifoReplacement(int pid, int page_number){
 		}
  	}
 	physical_memory[location].pid = pid;
-       	physical_memory[location].valid = false;
+    //physical_memory[location].valid = true; // Not needed since if a frame is to be replaced, then every frame is allocated (valid) already
 	
 	virtual_memory[pid].pages[page_number] = location;	
 }
+
+void VirtualMemorySimulator::randomReplacement(int pid, int page_number){
+	// Generate a random index within the size of physical memory
+	int randIndex = rand() % physical_memory.size();
+
+	// Remove the old reference to the randIndex from the previous pageholder
+	for(int i = 0; i < virtual_memory[physical_memory[randIndex].pid].pages.size(); i++){
+		if(virtual_memory[physical_memory[randIndex].pid].pages[i] == randIndex)
+			virtual_memory[physical_memory[randIndex].pid].pages[i] = -1;
+	}
+
+	// Assign the frame's PID to the new PID
+	physical_memory[randIndex].pid = pid;
+
+	// Update the location for the new page
+	virtual_memory[pid].pages[page_number] = randIndex;
+}
+
+void VirtualMemorySimulator::LRUReplacement(int pid, int page_number){
+
+}
+
 int VirtualMemorySimulator::reference(int pid, int page_number){
+
+	// TODO: Check if the page is a valid page (within bounds of num_pages and num_frames)
+
 	// Check if the page is not resident
 	bool resident = false;
 	struct process *p = &virtual_memory[pid];
@@ -73,16 +99,20 @@ int VirtualMemorySimulator::reference(int pid, int page_number){
 			if(!physical_memory[page].valid){
 				// Found a free frame of memory, allocate it
 				p->pages[page_number] = page;
-				physical_memory[page].valid = false;
+				physical_memory[page].valid = true;
 				physical_memory[page].pid = pid;
 
-				physical_memory[page].age = 0;
-				incAllOtherAges(page);
-				// Do nothing, age is not used
-				// Set age to the current time
-				physical_memory[page].age = clock();
-				//place filled frame onto FIFO queue
-				fifo.push(pair<int, struct frame>(page, physical_memory[page]));
+				if(replacement_policy == MODE_LRU){
+					physical_memory[page].age = 0;
+					incAllOtherAges(page);
+				}
+				else if(replacement_policy == MODE_RANDOM){
+					// Do nothing
+				}
+				else if(replacement_policy == MODE_FIFO){
+					//place filled frame onto FIFO queue
+					fifo.push(pair<int, struct frame>(page, physical_memory[page]));
+				}
 				return PAGE_SUCCESS;
 			}
 		}
@@ -91,11 +121,13 @@ int VirtualMemorySimulator::reference(int pid, int page_number){
 		// Implement replacement policies here --------------------------------
 		if(replacement_policy = MODE_RANDOM){
 			//call random replacement
+			randomReplacement(pid, page_number);
 		}
 		else if(replacement_policy = MODE_LRU){
 			//call LRU replacement
+			LRUReplacement(pid, page_number);
 		}
-		else{
+		else if(replacement_policy == MODE_FIFO){
 			fifoReplacement(pid, page_number);
 		}
 
@@ -104,8 +136,13 @@ int VirtualMemorySimulator::reference(int pid, int page_number){
 		return PAGE_FAULT;
 	}
 	else{
-		physical_memory[page_number].age = 0;
-		incAllOtherAges(page_number);
+
+		// If the LRU Replacement policy is selected, set this page age to 0
+		// and increment all other page ages
+		if(replacement_policy == MODE_LRU){
+			physical_memory[page_number].age = 0;
+			incAllOtherAges(page_number);
+		}
 		return PAGE_RESIDENT;
 	}
 }
