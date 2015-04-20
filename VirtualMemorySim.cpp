@@ -91,7 +91,7 @@ void VirtualMemorySimulator::LRUReplacement(int pid, int page_number){
 	// Find the frame with the oldest age
 	int frame = 0;
 	int age = 0;
-	for(int i = 0 ; i < physical_memory.size; i ++){
+	for(int i = 0 ; i < physical_memory.size(); i ++){
 		if(physical_memory[i].age > age){
 			age = physical_memory[i].age;
 			frame = i;
@@ -131,7 +131,7 @@ int VirtualMemorySimulator::reference(int pid, int page_number){
 				else if(replacement_policy == MODE_RANDOM){
 					// Do nothing
 				}
-				else if(replacement_policy == MODE_FIFO){
+				else if(replacement_policy == MODE_QUEUE){
 					//place filled frame onto FIFO queue
 					fifo.push(pair<int, struct frame>(page, physical_memory[page]));
 				}
@@ -149,7 +149,7 @@ int VirtualMemorySimulator::reference(int pid, int page_number){
 			//call LRU replacement
 			LRUReplacement(pid, page_number);
 		}
-		else if(replacement_policy == MODE_FIFO){
+		else if(replacement_policy == MODE_QUEUE){
 			fifoReplacement(pid, page_number);
 		}
 
