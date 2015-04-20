@@ -123,6 +123,18 @@ void VirtualMemorySimulator::terminate(int process_id){
 
 	// Remove the process from the map
 	struct process p = virtual_memory[process_id];
+	if(replacement_policy == MODE_QUEUE){
+		int count = 0;
+		int size = fifo.size();
+		while(count < size){
+			pair<int, struct frame> p1 = fifo.front();
+			fifo.pop();
+			if(p1.second.pid != process_id){
+				fifo.push(p1);
+			}
+			count++;
+		}
+	}
 	for(int i = 0; i < p.num_pages; i++){
 		if(p.pages[i] != -1){
 			physical_memory[i].valid = false;
