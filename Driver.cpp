@@ -19,7 +19,7 @@ int main(int argc, char* argv[]){
 		//do so using a class, which contains parameters representing frame size
 		//as well as a data structure to store processes
 		//processes should be indexed by process number
-		VirtualMemorySimulator VMS(num_frames, MODE_QUEUE);
+		VirtualMemorySimulator VMS(num_frames, MODE_LRU);
 		ifstream infile(filename);
 		if(infile.is_open()){
 			string line, word;
@@ -56,10 +56,17 @@ int main(int argc, char* argv[]){
 					else if(result == PAGE_RESIDENT){
 						cout << "Page number " << page_number << " is already resident to process id " << process_number << endl;
 					}
+					else{
+						continue;	
+					}
 				}	
 			}
 		}
 		infile.close();
+
+
+		// Print fault counts
+		cout << "QUEUE Fault count:" << VMS.getFaultCount() << endl;
 	}
 	return 0;
 }

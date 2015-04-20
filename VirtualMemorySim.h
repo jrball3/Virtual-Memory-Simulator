@@ -12,6 +12,7 @@
 #define PAGE_FAULT 0
 #define PAGE_SUCCESS 1
 #define PAGE_RESIDENT 2
+#define IGNORE_REF 3
 
 #define MODE_RANDOM 1
 #define MODE_LRU 2
@@ -49,7 +50,7 @@ class VirtualMemorySimulator{
 		std::map<int,struct process> virtual_memory;
 		std::queue<std::pair<int, struct frame>> fifo;
 	public:
-		VirtualMemorySimulator(int num_framesi, int mode);
+		VirtualMemorySimulator(int num_frames, int mode);
 		void start(int pid, int size);
 		void terminate(int pid);
 		int reference(int pid, int page_number);
@@ -58,4 +59,5 @@ class VirtualMemorySimulator{
 		void randomReplacement(int pid, int page_number);
 		void LRUReplacement(int pid, int page_number);
 		void replaceFrameHolder(int frame, int pid, int page_number);
+		int getFaultCount();
 };

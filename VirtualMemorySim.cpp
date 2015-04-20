@@ -28,6 +28,13 @@ void VirtualMemorySimulator::start(int process_id, int size){
 	}
 	pair<int, struct process> pair1(process_id, p1);
 	virtual_memory.insert(pair1);
+	// Show contents of map
+//	cout << "Printing contents of virtual_memory" << endl;
+
+	for(auto it : virtual_memory){
+		cout << "virtual_memory[" << it.first << "]" <<  endl;
+	}
+//	cout << "End map contents" << endl;
 }
 
 // Only used for the LRU replacement policy
@@ -41,8 +48,14 @@ void VirtualMemorySimulator::incAllOtherAges(int page_number){
 	}	
 }
 void VirtualMemorySimulator::fifoReplacement(int pid, int page_number){
+	cout << "fifoReplacement(" << pid << ", " << page_number << ") called." << endl;
+
+
+	cout << "Printing physical memory contents before replacement..." << endl;
+	cout << fifo.front().first << endl;
+	cout << "End print" << endl;
 	if(fifo.size() != physical_memory.size()){
-		cout << "ERROR: Incoherence between queue and physical memory" << endl;
+		cout << "ERROR: Incoherence between queue and physical memory: " << physical_memory.size() << endl;
 	}
 	pair<int, struct frame> element = fifo.front();
 	fifo.pop();
@@ -56,16 +69,30 @@ void VirtualMemorySimulator::fifoReplacement(int pid, int page_number){
 	physical_memory[location].pid = pid;
     //physical_memory[location].valid = true; // Not needed since if a frame is to be replaced, then every frame is allocated (valid) already
 	
-	virtual_memory[pid].pages[page_number] = location;	
+	virtual_memory[pid].pages[page_number] = location;
+	pair<int, struct frame> newP(location, physical_memory[location]);
+	fifo.push(newP);	
+	cout << "Replacement done.";
+
+	cout << "Printing physical memory contents after replacement..." << endl;
+	cout << fifo.front().first << endl;
+	cout << "End print" << endl;
 }
 
 // This function removes the indicated frame from its original holder 
 // and gives ownership to the indicated process
 void VirtualMemorySimulator::replaceFrameHolder(int frame, int pid, int page_number){
 
+
+	cout << "Physical memory before frame replacment" << endl;
+	for(int i = 0; i < physical_memory.size(); i ++){
+		cout << "physical_memory[" << i << "] is held by process " << physical_memory[i].pid << endl;
+	}
+
 	// Remove the old reference to the frame from the previous holder
 	for(int i = 0; i < virtual_memory[physical_memory[frame].pid].pages.size(); i++){
 		if(virtual_memory[physical_memory[frame].pid].pages[i] == frame){
+			cout << "Frame " << frame << " is page number " << i << endl;
 			virtual_memory[physical_memory[frame].pid].pages[i] = -1;
 			break;
 		}
@@ -76,6 +103,12 @@ void VirtualMemorySimulator::replaceFrameHolder(int frame, int pid, int page_num
 
 	// Update the location for the new page
 	virtual_memory[pid].pages[page_number] = frame;
+
+
+	cout << "Physical memory after frame replacment" << endl;
+	for(int i = 0; i < physical_memory.size(); i ++){
+		cout << "physical_memory[" << i << "] is held by process" << physical_memory[i].pid << endl;
+	}
 }
 
 void VirtualMemorySimulator::randomReplacement(int pid, int page_number){
@@ -102,13 +135,20 @@ void VirtualMemorySimulator::LRUReplacement(int pid, int page_number){
 	replaceFrameHolder(frame, pid, page_number);
 }
 
-int VirtualMemorySimulator::reference(int pid, int page_number){
+int VirtualMemorySimulator::reference(int pid, int page_number1){
 
 	// TODO: Check if the page is a valid page (within bounds of num_pages and num_frames)
 
 	// Check if the page is not resident
 	bool resident = false;
 	struct process *p = &virtual_memory[pid];
+	int page_number = page_number1 - 1;
+
+	if(page_number1 < 1 || page_number1 > p->num_pages){
+		cerr << "Invalid page reference" << endl;
+		return IGNORE_REF;
+	} 
+
 	if(p->pages[page_number] != -1){
 		resident = true;
 	}
@@ -116,6 +156,10 @@ int VirtualMemorySimulator::reference(int pid, int page_number){
 	// If the page number is not resident, check for available memory
 	if(!resident){
 		fault_count++;
+
+		if(pid == 1 && page_number1 == 4){
+			cout << " Reference(1,4) fault count is now " << fault_count << endl;
+		}
 
 		for(int page = 0; page < physical_memory.size(); page++){
 			if(!physical_memory[page].valid){
@@ -134,18 +178,18 @@ int VirtualMemorySimulator::reference(int pid, int page_number){
 				else if(replacement_policy == MODE_QUEUE){
 					//place filled frame onto FIFO queue
 					fifo.push(pair<int, struct frame>(page, physical_memory[page]));
+					cout << "Queue size is now " << fifo.size() << endl;
 				}
 				return PAGE_SUCCESS;
 			}
 		}
-
 		// If we get to this point, there are no frames available in physical memory
 		// Implement replacement policies here --------------------------------
-		if(replacement_policy = MODE_RANDOM){
+		if(replacement_policy == MODE_RANDOM){
 			//call random replacement
 			randomReplacement(pid, page_number);
 		}
-		else if(replacement_policy = MODE_LRU){
+		else if(replacement_policy == MODE_LRU){
 			//call LRU replacement
 			LRUReplacement(pid, page_number);
 		}
@@ -202,5 +246,9 @@ void VirtualMemorySimulator::terminate(int process_id){
 		}
 	}
 	virtual_memory.erase(process_id);
+}
+
+int VirtualMemorySimulator::getFaultCount(){
+	return fault_count;
 }
 
