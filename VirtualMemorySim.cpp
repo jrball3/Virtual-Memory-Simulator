@@ -28,13 +28,6 @@ void VirtualMemorySimulator::start(int process_id, int size){
 	}
 	pair<int, struct process> pair1(process_id, p1);
 	virtual_memory.insert(pair1);
-	// Show contents of map
-//	cout << "Printing contents of virtual_memory" << endl;
-
-	for(auto it : virtual_memory){
-		cout << "virtual_memory[" << it.first << "]" <<  endl;
-	}
-//	cout << "End map contents" << endl;
 }
 
 // Only used for the LRU replacement policy
@@ -48,12 +41,12 @@ void VirtualMemorySimulator::incAllOtherAges(int page_number){
 	}	
 }
 void VirtualMemorySimulator::fifoReplacement(int pid, int page_number){
-	cout << "fifoReplacement(" << pid << ", " << page_number << ") called." << endl;
+//	cout << "fifoReplacement(" << pid << ", " << page_number << ") called." << endl;
 
 
-	cout << "Printing physical memory contents before replacement..." << endl;
-	cout << fifo.front().first << endl;
-	cout << "End print" << endl;
+//	cout << "Printing physical memory contents before replacement..." << endl;
+//	cout << fifo.front().first << endl;
+//	cout << "End print" << endl;
 	if(fifo.size() != physical_memory.size()){
 		cout << "ERROR: Incoherence between queue and physical memory: " << physical_memory.size() << endl;
 	}
@@ -72,11 +65,11 @@ void VirtualMemorySimulator::fifoReplacement(int pid, int page_number){
 	virtual_memory[pid].pages[page_number] = location;
 	pair<int, struct frame> newP(location, physical_memory[location]);
 	fifo.push(newP);	
-	cout << "Replacement done.";
+//	cout << "Replacement done.";
 
-	cout << "Printing physical memory contents after replacement..." << endl;
-	cout << fifo.front().first << endl;
-	cout << "End print" << endl;
+//	cout << "Printing physical memory contents after replacement..." << endl;
+//	cout << fifo.front().first << endl;
+//	cout << "End print" << endl;
 }
 
 // This function removes the indicated frame from its original holder 
@@ -93,9 +86,11 @@ void VirtualMemorySimulator::replaceFrameHolder(int frame, int pid, int page_num
 	for(int i = 0; i < virtual_memory[physical_memory[frame].pid].pages.size(); i++){
 		if(virtual_memory[physical_memory[frame].pid].pages[i] == frame){
 			cout << "Frame " << frame << " is page number " << i << endl;
+			cout << "Page: " << i << " is held in frame: " << virtual_memory[physical_memory[frame].pid].pages[i] << endl; 
 			virtual_memory[physical_memory[frame].pid].pages[i] = -1;
 			break;
 		}
+		//cout << "Page: " << i << " is held in frame: " << virtual_memory[physical_memory[frame].pid].pages[i] << endl; 
 	}
 
 	// Assign the frame's PID to the new PID
