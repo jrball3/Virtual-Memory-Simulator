@@ -1,3 +1,5 @@
+#include <cstdlib>
+#include <chrono>
 #include "VirtualMemorySim.h"
 using namespace std;
 
@@ -96,6 +98,12 @@ void VirtualMemorySimulator::replaceFrameHolder(int frame, int pid, int page_num
 	// Assign the frame's PID to the new PID
 	physical_memory[frame].pid = pid;
 
+	// If LRU then update ages
+	if(replacement_policy == MODE_LRU){
+		physical_memory[frame].age = 0;
+		incAllOtherAges(frame);
+	}
+
 	// Update the location for the new page
 	virtual_memory[pid].pages[page_number] = frame;
 
@@ -156,23 +164,23 @@ int VirtualMemorySimulator::reference(int pid, int page_number1){
 			cout << " Reference(1,4) fault count is now " << fault_count << endl;
 		}
 
-		for(int page = 0; page < physical_memory.size(); page++){
-			if(!physical_memory[page].valid){
+		for(int frame = 0; frame < physical_memory.size(); frame++){
+			if(!physical_memory[frame].valid){
 				// Found a free frame of memory, allocate it
-				p->pages[page_number] = page;
-				physical_memory[page].valid = true;
-				physical_memory[page].pid = pid;
+				p->pages[page_number] = frame;
+				physical_memory[frame].valid = true;
+				physical_memory[frame].pid = pid;
 
 				if(replacement_policy == MODE_LRU){
-					physical_memory[page].age = 0;
-					incAllOtherAges(page);
+					physical_memory[frame].age = 0;
+					incAllOtherAges(frame);
 				}
 				else if(replacement_policy == MODE_RANDOM){
 					// Do nothing
 				}
 				else if(replacement_policy == MODE_QUEUE){
 					//place filled frame onto FIFO queue
-					fifo.push(pair<int, struct frame>(page, physical_memory[page]));
+					fifo.push(pair<int, struct frame>(frame, physical_memory[frame]));
 					cout << "Queue size is now " << fifo.size() << endl;
 				}
 				return PAGE_SUCCESS;

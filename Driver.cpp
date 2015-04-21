@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include "VirtualMemorySim.h"
+#include <cstdlib>
 
 using namespace std;
 
