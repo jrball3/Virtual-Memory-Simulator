@@ -41,8 +41,8 @@ int main(int argc, char* argv[]){
 		num_processes = rand() % 30 + 70;
 		for(int i = 0; i < num_processes; i++){
 			num_pages = rand() % 10 + 1;
-			vector<int> process_array;
-			process_list.push_back(process_array);
+			vector<int> process_array; 
+			process_list.push_back(process_array); // This is pushed back when its size is 0 - could be causing seg fault below
 			for(int j = 1; j < num_pages + 1; j++){
 				process_list[i].push_back(j);
 			}
@@ -75,8 +75,13 @@ int main(int argc, char* argv[]){
 			else{
 				int burst_amount = rand() % 16 + 2;
 				int rand_range = rand() % 16 + 2;
-				int rand_page_start = rand() % process_list[process].size() + 1;
+				// Getting an arithmetic exception at next line which could only be caused if the process_list[process].size() is 0
+				int rand_page_start = rand() % process_list[process].size() + 1; 
 				for(int i = 1; i < burst_amount + 1; i++){
+					// The following code is sometimes generating indexes that are out of bounds - seg fault
+					// Need to check index generation always generates an in-bounds index
+					// Also, if the size of the process list is 0, then rand_page will be set to rand_page % (0+1)
+					// yielding either 0 or 1, then process_list[process][rand_page] is called, if the size is 0 then this will set fault
 					int rand_page = rand() % rand_page_start + rand_range;
 					rand_page = rand_page % process_list[process].size() + 1;
 					outfile << "REFERENCE " << process << " " << process_list[process][rand_page] << endl;
@@ -87,7 +92,7 @@ int main(int argc, char* argv[]){
 				}
 			}
 			int chance_to_terminate = rand() % 100;
-			if(chance_to_terminate == 33){
+			if(chance_to_terminate == 33){ // NOTE: This has a 1/100 chance of happening
 				outfile << "TERMINATE " << process <<  endl;
 				process_started[process] = false;
 			}
