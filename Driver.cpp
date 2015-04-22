@@ -65,19 +65,19 @@ int main(int argc, char* argv[]){
 					}
 					
 					int result2 = VMS_QUEUE.reference(process_number, page_number);	
-					int result3 = VMS_RANDOM.reference(process_number, page_number);	
+					int result3 = VMS_RANDOM.reference(process_number, page_number);
 						
 				}	
 			}
 		}
-		infile.close();
-
+	//	cout << "About to close file" << endl;
+	//	infile.close();
 
 		// Print fault counts
 		cout << "Page Fault Rates: " << endl; 
-		cout << "RANDOM: " << (VMS_RANDOM.getFaultCount() / VMS_RANDOM.getReferenceCount()) * 100 << "%" << endl;
-		cout << "LRU: " << (VMS_LRU.getFaultCount() / VMS_LRU.getReferenceCount()) * 100 << "%" << endl;
-		cout << "FIFO: " << (VMS_QUEUE.getFaultCount() / VMS_QUEUE.getReferenceCount()) * 100 << "%" << endl;
+		cout << "RANDOM: " << ((float)VMS_RANDOM.getFaultCount() / (float)VMS_RANDOM.getReferenceCount()) * 100.0f << "%" << endl;
+		cout << "LRU: " << ((float)VMS_LRU.getFaultCount() / (float)VMS_LRU.getReferenceCount()) * 100.0f << "%" << endl;
+		cout << "FIFO: " << ((float)VMS_QUEUE.getFaultCount() / (float)VMS_QUEUE.getReferenceCount()) * 100.0f << "%" << endl;
 	}
 	return 0;
 }

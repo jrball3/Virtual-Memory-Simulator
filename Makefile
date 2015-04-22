@@ -1,5 +1,5 @@
 PROJ = program2
-FLAGS = -g -std=c++0x
+FLAGS = -g -std=c++0x 
 COMP = g++
 
 all: Driver.o VirtualMemorySim.o

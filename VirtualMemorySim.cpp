@@ -8,11 +8,10 @@ VirtualMemorySimulator::VirtualMemorySimulator(int num_frames, int mode)
 	//initialize physical memory to -1, representing vacant
 	//physical_memory size represents
 	for(int i = 0; i < num_frames; i++){
-		//physical_memory.push_back(pair<int, int>(-1,-1));
-
 		struct frame f(false, FREE_FRAME, 0);
 		physical_memory.push_back(f);
 	}
+	reference_count = 0;
 	replacement_policy  = mode;
 	fault_count = 0;
 	srand(time(0));
@@ -35,22 +34,17 @@ void VirtualMemorySimulator::start(int process_id, int size){
 // Only used for the LRU replacement policy
 // This function increments the ages of all frames in physical memory
 // except for the page number passed in as an argument
-void VirtualMemorySimulator::incAllOtherAges(int page_number){
-	for(int page = 0; page < physical_memory.size(); page++){
-		if(page != page_number){
-			physical_memory[page].age++;
+void VirtualMemorySimulator::incAllOtherAges(int frameToIgnore){
+	for(int frame = 0; frame < physical_memory.size(); frame++){
+		if(frame != frameToIgnore){
+			physical_memory[frame].age++;
 		}
 	}	
 }
 void VirtualMemorySimulator::fifoReplacement(int pid, int page_number){
-//	cout << "fifoReplacement(" << pid << ", " << page_number << ") called." << endl;
-
-
-//	cout << "Printing physical memory contents before replacement..." << endl;
-//	cout << fifo.front().first << endl;
-//	cout << "End print" << endl;
 	if(fifo.size() != physical_memory.size()){
 		cout << "ERROR: Incoherence between queue and physical memory: " << physical_memory.size() << endl;
+//		cout << "Queue size: " <<  fifo.size() << " vs " << physical_memory.size() << endl;
 	}
 	pair<int, struct frame> element = fifo.front();
 	fifo.pop();
@@ -67,11 +61,6 @@ void VirtualMemorySimulator::fifoReplacement(int pid, int page_number){
 	virtual_memory[pid].pages[page_number] = location;
 	pair<int, struct frame> newP(location, physical_memory[location]);
 	fifo.push(newP);	
-//	cout << "Replacement done.";
-
-//	cout << "Printing physical memory contents after replacement..." << endl;
-//	cout << fifo.front().first << endl;
-//	cout << "End print" << endl;
 }
 
 // This function removes the indicated frame from its original holder 
@@ -160,17 +149,12 @@ int VirtualMemorySimulator::reference(int pid, int page_number1){
 	if(!resident){
 		fault_count++;
 
-	//	if(pid == 1 && page_number1 == 4){
-	//		cout << " Reference(1,4) fault count is now " << fault_count << endl;
-	//	}
-
 		for(int frame = 0; frame < physical_memory.size(); frame++){
 			if(!physical_memory[frame].valid){
 				// Found a free frame of memory, allocate it
 				p->pages[page_number] = frame;
 				physical_memory[frame].valid = true;
 				physical_memory[frame].pid = pid;
-
 				if(replacement_policy == MODE_LRU){
 					physical_memory[frame].age = 0;
 					incAllOtherAges(frame);
@@ -181,7 +165,7 @@ int VirtualMemorySimulator::reference(int pid, int page_number1){
 				else if(replacement_policy == MODE_QUEUE){
 					//place filled frame onto FIFO queue
 					fifo.push(pair<int, struct frame>(frame, physical_memory[frame]));
-	//				cout << "Queue size is now " << fifo.size() << endl;
+//					cout << "Queue size is now " << fifo.size() << endl;
 				}
 				return PAGE_SUCCESS;
 			}
@@ -209,7 +193,7 @@ int VirtualMemorySimulator::reference(int pid, int page_number1){
 		// If the LRU Replacement policy is selected, set this page age to 0
 		// and increment all other page ages
 		if(replacement_policy == MODE_LRU){
-			physical_memory[page_number].age = 0;
+			physical_memory[p->pages[page_number]].age = 0;
 			incAllOtherAges(page_number);
 		}
 		return PAGE_RESIDENT;
@@ -217,15 +201,6 @@ int VirtualMemorySimulator::reference(int pid, int page_number1){
 }
 
 void VirtualMemorySimulator::terminate(int process_id){
-	// Free all frames the process references
-	//for(auto f : physical_memory){
-	//	if(f.pid == process_id){
-	//		// Deallocate the frame
-	//		f.valid = false;
-	//		f.pid = -1;
-	//		f.age = 0;
-	//	}
-	//}
 
 	// Remove the process from the map
 	struct process p = virtual_memory[process_id];
@@ -243,9 +218,9 @@ void VirtualMemorySimulator::terminate(int process_id){
 	}
 	for(int i = 0; i < p.num_pages; i++){
 		if(p.pages[i] != -1){
-			physical_memory[i].valid = false;
-			physical_memory[i].pid = FREE_FRAME;
-			physical_memory[i].age = 0;
+			physical_memory[p.pages[i]].valid = false;
+			physical_memory[p.pages[i]].pid = FREE_FRAME;
+			physical_memory[p.pages[i]].age = 0;
 		}
 	}
 	virtual_memory.erase(process_id);
