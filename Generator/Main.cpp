@@ -5,9 +5,9 @@
 #include <string>
 #include <vector>
 
-#define LARGE_REF 10000
-#define MED_REF 1000
-#define SMALL_REF 100
+#define LARGE_REF 1000
+#define MED_REF 100
+#define SMALL_REF 10
 
 using namespace std;
 
@@ -42,10 +42,10 @@ int main(int argc, char* argv[]){
 		for(int i = 0; i < num_processes; i++){
 			num_pages = rand() % 10 + 1;
 			vector<int> process_array; 
-			process_list.push_back(process_array); // This is pushed back when its size is 0 - could be causing seg fault below
 			for(int j = 1; j < num_pages + 1; j++){
-				process_list[i].push_back(j);
+				process_array.push_back(j);
 			}
+			process_list.push_back(process_array); // This is pushed back when its size is 0 - could be causing seg fault below
 			process_started.push_back(false);
 		}
 	}
@@ -55,10 +55,10 @@ int main(int argc, char* argv[]){
 		for(int i = 0; i < num_processes; i++){
 			num_pages = rand() % 200 + 1;
 			vector<int> process_array;
-			process_list.push_back(process_array);
 			for(int j = 1; j < num_pages + 1; j++){
-				process_list[i].push_back(j);
+				process_array.push_back(j);
 			}
+			process_list.push_back(process_array);
 			process_started.push_back(false);
 		}
 	}
@@ -107,7 +107,7 @@ int main(int argc, char* argv[]){
 			}
 			else{
 				int burst_amount = rand() % 4;
-				for(int i = 0; i < burst_amount; i++){
+				for(int i = 1; i < burst_amount + 1; i++){
 					int rand_page = rand() % process_list[process].size() + 1;
 					outfile << "REFERENCE " << process << " " << process_list[process][rand_page] << endl;
 					ref_left--;

@@ -22,7 +22,8 @@ class VirtualMemorySimulator{
 	private:
 		int replacement_policy;		
 		int fault_count;
-		
+		int reference_count;
+
 		struct process{
 		//	int pid;
 			int num_pages;
@@ -60,4 +61,5 @@ class VirtualMemorySimulator{
 		void LRUReplacement(int pid, int page_number);
 		void replaceFrameHolder(int frame, int pid, int page_number);
 		int getFaultCount();
+		int getReferenceCount();
 };

@@ -55,13 +55,13 @@ int main(int argc, char* argv[]){
 					//call reference function
 					int result = VMS_LRU.reference(process_number, page_number);
 					if(result == PAGE_FAULT){
-						cout << "Encountered a page fault when attempting to add a reference from process id " << process_number << " to page number " << page_number << endl;
+//						cout << "Encountered a page fault when attempting to add a reference from process id " << process_number << " to page number " << page_number << endl;
 					}
 					else if(result == PAGE_SUCCESS){
 						// Reference addition successful
 					}
 					else if(result == PAGE_RESIDENT){
-						cout << "Page number " << page_number << " is already resident to process id " << process_number << endl;
+//						cout << "Page number " << page_number << " is already resident to process id " << process_number << endl;
 					}
 					
 					int result2 = VMS_QUEUE.reference(process_number, page_number);	
@@ -74,9 +74,10 @@ int main(int argc, char* argv[]){
 
 
 		// Print fault counts
-		cout << "LRU Fault count:" << VMS_LRU.getFaultCount() << endl;
-		cout << "QUEUE Fault count:" << VMS_QUEUE.getFaultCount() << endl;
-		cout << "RANDOM Fault count:" << VMS_RANDOM.getFaultCount() << endl;
+		cout << "Page Fault Rates: " << endl; 
+		cout << "RANDOM: " << (VMS_RANDOM.getFaultCount() / VMS_RANDOM.getReferenceCount()) * 100 << "%" << endl;
+		cout << "LRU: " << (VMS_LRU.getFaultCount() / VMS_LRU.getReferenceCount()) * 100 << "%" << endl;
+		cout << "FIFO: " << (VMS_QUEUE.getFaultCount() / VMS_QUEUE.getReferenceCount()) * 100 << "%" << endl;
 	}
 	return 0;
 }

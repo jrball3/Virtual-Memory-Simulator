@@ -79,16 +79,16 @@ void VirtualMemorySimulator::fifoReplacement(int pid, int page_number){
 void VirtualMemorySimulator::replaceFrameHolder(int frame, int pid, int page_number){
 
 
-	cout << "Physical memory before frame replacment" << endl;
-	for(int i = 0; i < physical_memory.size(); i ++){
-		cout << "physical_memory[" << i << "] is held by process " << physical_memory[i].pid << endl;
-	}
+//	cout << "Physical memory before frame replacment" << endl;
+//	for(int i = 0; i < physical_memory.size(); i ++){
+//		cout << "physical_memory[" << i << "] is held by process " << physical_memory[i].pid << endl;
+//	}
 
 	// Remove the old reference to the frame from the previous holder
 	for(int i = 0; i < virtual_memory[physical_memory[frame].pid].pages.size(); i++){
 		if(virtual_memory[physical_memory[frame].pid].pages[i] == frame){
-			cout << "Frame " << frame << " is page number " << i << endl;
-			cout << "Page: " << i << " is held in frame: " << virtual_memory[physical_memory[frame].pid].pages[i] << endl; 
+//			cout << "Frame " << frame << " is page number " << i << endl;
+//			cout << "Page: " << i << " is held in frame: " << virtual_memory[physical_memory[frame].pid].pages[i] << endl; 
 			virtual_memory[physical_memory[frame].pid].pages[i] = -1;
 			break;
 		}
@@ -108,10 +108,10 @@ void VirtualMemorySimulator::replaceFrameHolder(int frame, int pid, int page_num
 	virtual_memory[pid].pages[page_number] = frame;
 
 
-	cout << "Physical memory after frame replacment" << endl;
-	for(int i = 0; i < physical_memory.size(); i ++){
-		cout << "physical_memory[" << i << "] is held by process" << physical_memory[i].pid << endl;
-	}
+//	cout << "Physical memory after frame replacment" << endl;
+//	for(int i = 0; i < physical_memory.size(); i ++){
+//		cout << "physical_memory[" << i << "] is held by process" << physical_memory[i].pid << endl;
+//	}
 }
 
 void VirtualMemorySimulator::randomReplacement(int pid, int page_number){
@@ -141,7 +141,7 @@ void VirtualMemorySimulator::LRUReplacement(int pid, int page_number){
 int VirtualMemorySimulator::reference(int pid, int page_number1){
 
 	// TODO: Check if the page is a valid page (within bounds of num_pages and num_frames)
-
+	reference_count++;
 	// Check if the page is not resident
 	bool resident = false;
 	struct process *p = &virtual_memory[pid];
@@ -160,9 +160,9 @@ int VirtualMemorySimulator::reference(int pid, int page_number1){
 	if(!resident){
 		fault_count++;
 
-		if(pid == 1 && page_number1 == 4){
-			cout << " Reference(1,4) fault count is now " << fault_count << endl;
-		}
+	//	if(pid == 1 && page_number1 == 4){
+	//		cout << " Reference(1,4) fault count is now " << fault_count << endl;
+	//	}
 
 		for(int frame = 0; frame < physical_memory.size(); frame++){
 			if(!physical_memory[frame].valid){
@@ -181,7 +181,7 @@ int VirtualMemorySimulator::reference(int pid, int page_number1){
 				else if(replacement_policy == MODE_QUEUE){
 					//place filled frame onto FIFO queue
 					fifo.push(pair<int, struct frame>(frame, physical_memory[frame]));
-					cout << "Queue size is now " << fifo.size() << endl;
+	//				cout << "Queue size is now " << fifo.size() << endl;
 				}
 				return PAGE_SUCCESS;
 			}
@@ -254,4 +254,6 @@ void VirtualMemorySimulator::terminate(int process_id){
 int VirtualMemorySimulator::getFaultCount(){
 	return fault_count;
 }
-
+int VirtualMemorySimulator::getReferenceCount(){
+	return reference_count;
+}
