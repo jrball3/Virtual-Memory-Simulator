@@ -74,28 +74,24 @@ int main(int argc, char* argv[]){
 				process_started[process] = true;
 			}
 			else{
-				int burst_amount = rand() % 16 + 2;
-				int rand_range = rand() % 16 + 2;
+				int burst_amount = 16;
 				// Getting an arithmetic exception at next line which could only be caused if the process_list[process].size() is 0
-				int rand_page_start = rand() % process_list[process].size() + 1;
-				for(int i = 1; i < burst_amount + 1; i++){
-					// The following code is sometimes generating indexes that are out of bounds - seg fault
-					// Need to check index generation always generates an in-bounds index
-					// Also, if the size of the process list is 0, then rand_page will be set to rand_page % (0+1)
-					// yielding either 0 or 1, then process_list[process][rand_page] is called, if the size is 0 then this will set fault
-					int rand_page = rand() % rand_page_start + rand_range;
-					rand_page = rand_page % process_list[process].size() + 1;
-					/*int refToPrint = process_list[process][rand_page];
-					if(refToPrint == 32581){
-						cout << "rand_page_start is " << rand_page_start << endl;
-						cout << "rand_range is " << rand_range << endl;
-					}*/
+				int rand_page_start = rand() % process_list[process].size();
+				for(int i = 0; i < burst_amount; i++){
+					int rand_page = rand_page_start + i;
+					rand_page = rand_page % process_list[process].size();
 					outfile << "REFERENCE " << process << " " << process_list[process][rand_page] << endl;
 					ref_left--;
 					if(ref_left == 0){
 						break;
 					}
+					//reference here to keep page resident in memory
+					outfile << "REFERENCE " << process << " " << process_list[process][rand_page_start] << endl;
 				}
+				//simulate many references to highly used location
+				for(int j = 0; j < 16; j++){
+					outfile << "REFERENCE " << process << " " << process_list[process][rand_page_start] << endl;
+				}	       
 			}
 			int chance_to_terminate = rand() % 100;
 			if(chance_to_terminate < 33){ // NOTE: This has a 1/100 chance of happening
